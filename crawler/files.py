@@ -22,4 +22,4 @@ def write_output(outpt: str, companies: List[CompanyOutput]) -> None:
         for company in companies:
             if not company.is_success:
                 print(f"Error crawling {company.name}: {company.error}")
-            f.write(company.to_csv())
+            f.write(company.to_csv_row() + "\n")

@@ -62,3 +62,4 @@ Here are some notes about the decisions made in this project and possibly future
 
 ### About paralelism
 
+### About unit tests

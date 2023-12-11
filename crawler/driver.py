@@ -3,22 +3,14 @@ from typing import List
 from progress.bar import Bar
 from playwright.sync_api import sync_playwright, Page, Playwright
 
+from .utils import extract_number
 from .types import CompanyInput, CompanyOutput
+from .errors import LoginError, SearchError, EmployeeError
 
 LINKEDIN_URL = "https://www.linkedin.com"
 LOGIN_URL = f"{LINKEDIN_URL}/login"
 FEED_URL = f"{LINKEDIN_URL}/feed/"
 SEARCH_URL = f"{LINKEDIN_URL}/search/results/companies/?keywords="
-
-
-class LoginError(Exception):
-    def __init__(self) -> None:
-        super().__init__("Login failed")
-
-
-class SearchError(Exception):
-    def __init__(self) -> None:
-        super().__init__("Search failed")
 
 
 def check_login(page: Page) -> bool:
@@ -48,14 +40,32 @@ def await_login(p: Playwright) -> Page:
     return page
 
 
-def scrape_one_company(page: Page, name: str) -> str:
+def find_company_link(page: Page, name: str) -> str:
     page.goto(SEARCH_URL + name)
+    # page.wait_for_load_state("domcontentloaded")
 
-    r = page.query_selector(".entity-result")
+    r = page.wait_for_selector(".entity-result")
     if not r:
         raise SearchError()
 
-    return r.query_selector("a").get_attribute("href")
+    try:
+        return r.query_selector("a").get_attribute("href")
+    except:
+        raise SearchError()
+
+
+def find_company_employees(page: Page, link: str) -> int:
+    page.goto(link + "people/")
+
+    r = page.wait_for_selector(".org-people__header-spacing-carousel")
+    if not r:
+        raise EmployeeError()
+
+    try:
+        txt_content = r.query_selector("h2").inner_text()
+        return extract_number(txt_content)
+    except:
+        raise EmployeeError()
 
 
 def scraper(inputs: List[CompanyInput]) -> List[CompanyOutput]:
@@ -65,12 +75,16 @@ def scraper(inputs: List[CompanyInput]) -> List[CompanyOutput]:
 
             outputs = []
             for company in inputs:
+                out = company.process_output()
                 try:
-                    link = scrape_one_company(page, company.name)
-                    outputs.append(company.out_success(link))
+                    out.link = find_company_link(page, company.name)
+                    out.employees = find_company_employees(page, out.link)
+                    out.status = "OK"
                 except Exception as e:
-                    outputs.append(company.out_error(str(e)))
+                    out.error = str(e)
+                    out.status = "ERROR"
                 finally:
+                    outputs.append(out)
                     bar.next()
 
             return outputs

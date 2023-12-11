@@ -21,5 +21,5 @@ def write_output(outpt: str, companies: List[CompanyOutput]) -> None:
     with output_path.open("w") as f:
         for company in companies:
             if not company.is_success:
-                print(f"Error crawling {company.name}: {company.error}")
+                print(f"Error scraping {company.name}: {company.error}")
             f.write(company.to_csv_row() + "\n")

@@ -1,6 +1,6 @@
 import fire
 
-from crawler import crawler
+from scraper import scraper
 
 if __name__ == "__main__":
-    fire.Fire(crawler)
+    fire.Fire(scraper)

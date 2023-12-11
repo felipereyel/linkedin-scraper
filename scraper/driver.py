@@ -42,9 +42,8 @@ def await_login(p: Playwright) -> Page:
 
 def find_company_link(page: Page, name: str) -> str:
     page.goto(SEARCH_URL + name)
-    # page.wait_for_load_state("domcontentloaded")
 
-    r = page.wait_for_selector(".entity-result")
+    r = page.query_selector(".entity-result")
     if not r:
         raise SearchError()
 

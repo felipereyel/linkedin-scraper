@@ -1,0 +1,5 @@
+pytest-playwright
+progress
+pytest
+black
+fire

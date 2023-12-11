@@ -68,7 +68,7 @@ def find_company_employees(page: Page, link: str) -> int:
         raise EmployeeError()
 
 
-def scraper(inputs: List[CompanyInput]) -> List[CompanyOutput]:
+def run(inputs: List[CompanyInput]) -> List[CompanyOutput]:
     with sync_playwright() as p:
         with Bar("Processing", max=len(inputs)) as bar:
             page = await_login(p)
